@@ -48,6 +48,7 @@ if st.button("Translate (अनुवाद करें)"):
                 
         except Exception as e:
             st.error("Connection Error. Please try again.")
+            
     else:
         st.warning("Please enter text.")
 
