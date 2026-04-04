@@ -1,2 +1,2 @@
-streamlit
-deep-translator
+streamlit==1.24.0
+deep-translator==1.11.4
