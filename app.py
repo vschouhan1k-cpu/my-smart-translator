@@ -1,11 +1,11 @@
 import streamlit as st
-from deep_translator import MyMemoryTranslator
+from deep_translator import GoogleTranslator
 import urllib.parse
 
 # 1. Page Setup
 st.set_page_config(page_title="Vijay's Smart App", layout="centered")
 
-# 2. Styling
+# 2. UI Styling
 st.markdown("""
     <style>
     .stTextArea textarea { font-size: 18px !important; border-radius: 10px !important; border: 2px solid #075E54 !important; }
@@ -16,25 +16,30 @@ st.markdown("""
 
 st.title("🌐 विजय का स्मार्ट ट्रांसलेटर")
 
-# 3. Selection
-mode = st.radio("अनुवाद का प्रकार:", ["Hindi to English", "English to Hindi"], horizontal=True)
-user_input = st.text_area("यहाँ लिखें:", height=120)
+# 3. Mode Selection
+mode = st.radio("अनुवाद का प्रकार चुनें:", ["Hindi to English", "English to Hindi"], horizontal=True)
 
-# 4. Logic using MyMemory Engine (No Transliteration Error)
-if st.button("Translate"):
+# 4. Input Area
+user_input = st.text_area("यहाँ लिखें:", height=120, placeholder="यहाँ टाइप करें...")
+
+# 5. The Fix: Using the Google Engine within deep-translator
+if st.button("Translate (अनुवाद करें)"):
     if user_input:
         try:
-            # MyMemory Engine इस्तेमाल कर रहे हैं क्योंकि यह सिर्फ अर्थ निकालता है
+            # Setting exact language codes to avoid "Pronunciation" errors
             if mode == "Hindi to English":
-                translated = MyMemoryTranslator(source='hi-IN', target='en-GB').translate(user_input)
-                # Sense Correction
-                if "doing anything" in translated.lower() and "बात" in user_input:
-                    translated = translated.replace("doing anything", "talking")
+                source_code, target_code = 'hi', 'en'
             else:
-                # English to Hindi (This will fix "I am going" error)
-                translated = MyMemoryTranslator(source='en-GB', target='hi-IN').translate(user_input)
+                source_code, target_code = 'en', 'hi'
+            
+            # Using Google Engine for accurate translation
+            translated = GoogleTranslator(source=source_code, target=target_code).translate(user_input)
+            
+            # Smart Correction for Hinglish
+            if mode == "Hindi to English" and "doing anything" in translated.lower() and "बात" in user_input:
+                translated = translated.replace("doing anything", "talking")
 
-            # Display Result
+            # Result Display
             st.markdown(f'<div class="translated-box">{translated}</div>', unsafe_allow_html=True)
             
             # Action Buttons
@@ -49,8 +54,9 @@ if st.button("Translate"):
                 st.code(translated, language=None)
                 
         except Exception as e:
-            st.error("सर्वर थोड़ा व्यस्त है, कृपया दोबारा दबाएँ।")
+            st.error("सर्वर लोड नहीं ले रहा, कृपया 5 सेकंड बाद दोबारा कोशिश करें।")
     else:
-        st.warning("कृपया कुछ लिखें।")
+        st.warning("कृपया पहले कुछ शब्द लिखें।")
 
-st.caption("Version 11.0 | MyMemory Reliable Engine")
+st.markdown("---")
+st.caption("Version 12.0 | Guaranteed Google Logic")
