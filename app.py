@@ -1,11 +1,11 @@
 import streamlit as st
-from googletrans import Translator
+from deep_translator import GoogleTranslator
 import urllib.parse
 
 # 1. Page Setup
-st.set_page_config(page_title="Vijay's Translator", layout="centered")
+st.set_page_config(page_title="Vijay's App", layout="centered")
 
-# 2. UI Styling
+# 2. Styling
 st.markdown("""
     <style>
     .stTextArea textarea { font-size: 18px !important; border-radius: 10px !important; border: 2px solid #075E54 !important; }
@@ -16,30 +16,25 @@ st.markdown("""
 
 st.title("🌐 विजय का स्मार्ट ट्रांसलेटर")
 
-# 3. Mode Selection
-mode = st.radio("Select Direction:", ["Hindi to English", "English to Hindi"], horizontal=True)
-
-# 4. Input Area
+# 3. Selection
+mode = st.radio("अनुवाद का प्रकार:", ["Hindi to English", "English to Hindi"], horizontal=True)
 user_input = st.text_area("यहाँ लिखें:", height=120)
 
-# 5. New Logic using googletrans (Stable Version)
-if st.button("Translate (अनुवाद करें)"):
+# 4. Corrected Logic using deep-translator
+if st.button("Translate"):
     if user_input:
-        translator = Translator()
         try:
+            # यहाँ हमने कोड्स को 'hi' और 'en' पर फिक्स किया है
             if mode == "Hindi to English":
-                result = translator.translate(user_input, src='hi', dest='en')
-                translated = result.text
-                
-                # 'Sense' Correction Logic
+                translated = GoogleTranslator(source='hi', target='en').translate(user_input)
+                # Sense Correction
                 if "doing anything" in translated.lower() and "बात" in user_input:
                     translated = translated.replace("doing anything", "talking")
             else:
-                # English to Hindi Logic
-                result = translator.translate(user_input, src='en', dest='hi')
-                translated = result.text
+                # English to Hindi (Fixed to prevent "Pronunciation" error)
+                translated = GoogleTranslator(source='en', target='hi').translate(user_input)
 
-            # Display Result
+            # Display
             st.markdown(f'<div class="translated-box">{translated}</div>', unsafe_allow_html=True)
             
             # Action Buttons
@@ -50,12 +45,12 @@ if st.button("Translate (अनुवाद करें)"):
                     <button style="width:100%; cursor:pointer; background-color:#25D366; color:white; border:none; padding:12px; border-radius:20px; font-weight:bold;">
                     WhatsApp</button></a>''', unsafe_allow_html=True)
             with col2:
-                st.info("📋 Copy from here:")
+                st.info("📋 Copy Text:")
                 st.code(translated, language=None)
                 
         except Exception as e:
-            st.error("सर्वर लोड नहीं ले रहा, कृपया 2 सेकंड बाद दोबारा बटन दबाएं।")
+            st.error("कनेक्शन की समस्या है। कृपया फिर से बटन दबाएँ।")
     else:
-        st.warning("कृपया कुछ टाइप करें।")
+        st.warning("कृपया कुछ लिखें।")
 
-st.caption("Version 9.0 | Google-Engine Final")
+st.caption("Version 10.0 | Python 3.14 Compatible")
