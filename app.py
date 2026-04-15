@@ -1,9 +1,9 @@
 import streamlit as st
-from deep_translator import GoogleTranslator
+from deep_translator import MyMemoryTranslator
 import urllib.parse
 
 # 1. Page Setup
-st.set_page_config(page_title="Vijay's App", layout="centered")
+st.set_page_config(page_title="Vijay's Smart App", layout="centered")
 
 # 2. Styling
 st.markdown("""
@@ -20,21 +20,21 @@ st.title("🌐 विजय का स्मार्ट ट्रांसल�
 mode = st.radio("अनुवाद का प्रकार:", ["Hindi to English", "English to Hindi"], horizontal=True)
 user_input = st.text_area("यहाँ लिखें:", height=120)
 
-# 4. Corrected Logic using deep-translator
+# 4. Logic using MyMemory Engine (No Transliteration Error)
 if st.button("Translate"):
     if user_input:
         try:
-            # यहाँ हमने कोड्स को 'hi' और 'en' पर फिक्स किया है
+            # MyMemory Engine इस्तेमाल कर रहे हैं क्योंकि यह सिर्फ अर्थ निकालता है
             if mode == "Hindi to English":
-                translated = GoogleTranslator(source='hi', target='en').translate(user_input)
+                translated = MyMemoryTranslator(source='hi-IN', target='en-GB').translate(user_input)
                 # Sense Correction
                 if "doing anything" in translated.lower() and "बात" in user_input:
                     translated = translated.replace("doing anything", "talking")
             else:
-                # English to Hindi (Fixed to prevent "Pronunciation" error)
-                translated = GoogleTranslator(source='en', target='hi').translate(user_input)
+                # English to Hindi (This will fix "I am going" error)
+                translated = MyMemoryTranslator(source='en-GB', target='hi-IN').translate(user_input)
 
-            # Display
+            # Display Result
             st.markdown(f'<div class="translated-box">{translated}</div>', unsafe_allow_html=True)
             
             # Action Buttons
@@ -49,8 +49,8 @@ if st.button("Translate"):
                 st.code(translated, language=None)
                 
         except Exception as e:
-            st.error("कनेक्शन की समस्या है। कृपया फिर से बटन दबाएँ।")
+            st.error("सर्वर थोड़ा व्यस्त है, कृपया दोबारा दबाएँ।")
     else:
         st.warning("कृपया कुछ लिखें।")
 
-st.caption("Version 10.0 | Python 3.14 Compatible")
+st.caption("Version 11.0 | MyMemory Reliable Engine")
