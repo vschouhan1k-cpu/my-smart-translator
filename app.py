@@ -1,5 +1,5 @@
 import streamlit as st
-from deep_translator import GoogleTranslator, MyMemoryTranslator
+from deep_translator import GoogleTranslator
 import urllib.parse
 
 # 1. Page Setup
@@ -17,27 +17,31 @@ st.markdown("""
 st.title("🌐 विजय का स्मार्ट ट्रांसलेटर")
 
 # 3. Mode
-mode = st.radio("Select Translation:", ["Hindi to English", "English to Hindi"], horizontal=True)
+mode = st.radio("अनुवाद चुनें:", ["Hindi to English", "English to Hindi"], horizontal=True)
 user_input = st.text_area("यहाँ लिखें:", height=120)
 
-# 4. Hybrid Logic (No more Hinglish errors)
-if st.button("Translate"):
+# 4. The Logic Fix
+if st.button("Translate (अनुवाद करें)"):
     if user_input:
         try:
             if mode == "Hindi to English":
-                # Hindi to English के लिए Google ही बेस्ट है
+                # शुद्ध हिंदी से इंग्लिश
                 translated = GoogleTranslator(source='hi', target='en').translate(user_input)
+                # Sense Correction
                 if "doing anything" in translated.lower() and "बात" in user_input:
                     translated = translated.replace("doing anything", "talking")
             else:
-                # English to Hindi के लिए MyMemory का इस्तेमाल (यह 'ई आम' वाली गलती नहीं करता)
-                translated = MyMemoryTranslator(source='en-GB', target='hi-IN').translate(user_input)
+                # English to Hindi: हम "Auto" डिटेक्शन बंद करके 'en' को 'hi' पर मजबूर करेंगे
+                # यहाँ हमने source को 'en' पर फिक्स कर दिया है ताकि वह 'Transliteration' न करे
+                translator_obj = GoogleTranslator(source='en', target='hi')
+                translated = translator_obj.translate(user_input)
                 
-                # अगर MyMemory भी फेल हो या 'Pronunciation' दे, तो Google का 'Hard' अनुवाद ट्राई करें
-                if translated.lower() == user_input.lower():
-                     translated = GoogleTranslator(source='en', target='hi').translate(user_input)
+                # 'Double Check' Logic: अगर अनुवाद अभी भी वही है जो इनपुट था, तो दोबारा कोशिश करें
+                if translated.strip().lower() == user_input.strip().lower():
+                    st.warning("Trying alternative server...")
+                    translated = GoogleTranslator(source='auto', target='hi').translate(user_input)
 
-            # Display Output
+            # Display
             st.markdown(f'<div class="translated-box">{translated}</div>', unsafe_allow_html=True)
             
             # Action Buttons
@@ -52,8 +56,8 @@ if st.button("Translate"):
                 st.code(translated, language=None)
                 
         except Exception as e:
-            st.error("Connection slow, please try again.")
+            st.error("सर्वर लोड नहीं ले रहा, कृपया 2 सेकंड बाद फिर दबाएँ।")
     else:
-        st.warning("Please type something.")
+        st.warning("कृपया कुछ टाइप करें।")
 
-st.caption("Version 13.0 | Hybrid Engine Fix")
+st.caption("Version 14.0 | Force-Translation Logic")
