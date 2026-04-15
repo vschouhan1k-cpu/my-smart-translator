@@ -1,9 +1,11 @@
 import streamlit as st
-from deep_translator import GoogleTranslator
+from googletrans import Translator
 import urllib.parse
 
-st.set_page_config(page_title="Vijay's Smart Translator", layout="centered")
+# 1. Page Setup
+st.set_page_config(page_title="Vijay's Translator", layout="centered")
 
+# 2. UI Styling
 st.markdown("""
     <style>
     .stTextArea textarea { font-size: 18px !important; border-radius: 10px !important; border: 2px solid #075E54 !important; }
@@ -14,41 +16,46 @@ st.markdown("""
 
 st.title("🌐 विजय का स्मार्ट ट्रांसलेटर")
 
-# Mode Selection
-mode = st.radio("अनुवाद का प्रकार चुनें:", ["Hindi to English", "English to Hindi"], horizontal=True)
+# 3. Mode Selection
+mode = st.radio("Select Direction:", ["Hindi to English", "English to Hindi"], horizontal=True)
 
-# Input Area
-user_input = st.text_area("यहाँ लिखें:", height=120, placeholder="यहाँ टाइप करें...")
+# 4. Input Area
+user_input = st.text_area("यहाँ लिखें:", height=120)
 
+# 5. New Logic using googletrans (Stable Version)
 if st.button("Translate (अनुवाद करें)"):
     if user_input:
-        # पक्के कोड्स: 'hi' (Hindi) और 'en' (English)
-        s_lang = 'hi' if mode == "Hindi to English" else 'en'
-        d_lang = 'en' if mode == "Hindi to English" else 'hi'
-            
+        translator = Translator()
         try:
-            translated = GoogleTranslator(source=s_lang, target=d_lang).translate(user_input)
-            
-            # Smart Correction for colloquial Hindi
-            if mode == "Hindi to English" and "doing anything" in translated.lower() and "बात" in user_input:
-                translated = translated.replace("doing anything", "talking")
+            if mode == "Hindi to English":
+                result = translator.translate(user_input, src='hi', dest='en')
+                translated = result.text
+                
+                # 'Sense' Correction Logic
+                if "doing anything" in translated.lower() and "बात" in user_input:
+                    translated = translated.replace("doing anything", "talking")
+            else:
+                # English to Hindi Logic
+                result = translator.translate(user_input, src='en', dest='hi')
+                translated = result.text
 
-            # Result Display
+            # Display Result
             st.markdown(f'<div class="translated-box">{translated}</div>', unsafe_allow_html=True)
             
-            # WhatsApp Share
-            encoded_text = urllib.parse.quote(translated)
-            st.markdown(f'''<a href="https://wa.me/?text={encoded_text}" target="_blank">
-                <button style="width:100%; cursor:pointer; background-color:#25D366; color:white; border:none; padding:12px; border-radius:20px; font-weight:bold; margin-bottom:15px;">
-                WhatsApp पर भेजें</button></a>''', unsafe_allow_html=True)
-            
-            # Improved Copy Option
-            st.info("📋 नीचे से टेक्स्ट कॉपी करें:")
-            st.code(translated, language=None)
+            # Action Buttons
+            col1, col2 = st.columns(2)
+            with col1:
+                encoded_text = urllib.parse.quote(translated)
+                st.markdown(f'''<a href="https://wa.me/?text={encoded_text}" target="_blank">
+                    <button style="width:100%; cursor:pointer; background-color:#25D366; color:white; border:none; padding:12px; border-radius:20px; font-weight:bold;">
+                    WhatsApp</button></a>''', unsafe_allow_html=True)
+            with col2:
+                st.info("📋 Copy from here:")
+                st.code(translated, language=None)
                 
         except Exception as e:
-            st.error("कनेक्शन एरर। कृपया दोबारा कोशिश करें।")
+            st.error("सर्वर लोड नहीं ले रहा, कृपया 2 सेकंड बाद दोबारा बटन दबाएं।")
     else:
         st.warning("कृपया कुछ टाइप करें।")
 
-st.caption("Version 8.0 | Fixed Language Logic")
+st.caption("Version 9.0 | Google-Engine Final")
