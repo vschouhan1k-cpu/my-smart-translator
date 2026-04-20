@@ -1,11 +1,19 @@
 import streamlit as st
-from deep_translator import GoogleTranslator
+import google.generativeai as genai
 import urllib.parse
 
-# 1. Page Setup
-st.set_page_config(page_title="Vijay's App", layout="centered")
+# 1. Page Config
+st.set_page_config(page_title="Vijay's AI Translator", layout="centered")
 
-# 2. Styling
+# 2. Security Setup (API Key को सुरक्षित तरीके से पढ़ना)
+try:
+    API_KEY = st.secrets["GEMINI_API_KEY"]
+    genai.configure(api_key=API_KEY)
+    model = genai.GenerativeModel('gemini-1.5-flash')
+except Exception:
+    st.error("कृपया Streamlit Secrets में API Key सेट करें।")
+
+# 3. Styling
 st.markdown("""
     <style>
     .stTextArea textarea { font-size: 18px !important; border-radius: 10px !important; border: 2px solid #075E54 !important; }
@@ -14,50 +22,37 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-st.title("🌐 विजय का स्मार्ट ट्रांसलेटर")
+st.title("🤖 विजय का AI ट्रांसलेटर")
+st.write("यह सिर्फ शब्दों को नहीं, आपकी भावनाओं (Sense) को समझता है।")
 
-# 3. Mode
-mode = st.radio("अनुवाद चुनें:", ["Hindi to English", "English to Hindi"], horizontal=True)
-user_input = st.text_area("यहाँ लिखें:", height=120)
+# 4. Input Area
+mode = st.radio("Mode चुनें:", ["Hindi to English", "English to Hindi"], horizontal=True)
+user_input = st.text_area("यहाँ लिखें (Hinglish भी चलेगा):", height=120, placeholder="उदा: आज तो बात ही नहीं कर रही हो")
 
-# 4. The Logic Fix
-if st.button("Translate (अनुवाद करें)"):
+# 5. AI Translation Logic
+if st.button("AI Translate"):
     if user_input:
-        try:
-            if mode == "Hindi to English":
-                # शुद्ध हिंदी से इंग्लिश
-                translated = GoogleTranslator(source='hi', target='en').translate(user_input)
-                # Sense Correction
-                if "doing anything" in translated.lower() and "बात" in user_input:
-                    translated = translated.replace("doing anything", "talking")
-            else:
-                # English to Hindi: हम "Auto" डिटेक्शन बंद करके 'en' को 'hi' पर मजबूर करेंगे
-                # यहाँ हमने source को 'en' पर फिक्स कर दिया है ताकि वह 'Transliteration' न करे
-                translator_obj = GoogleTranslator(source='en', target='hi')
-                translated = translator_obj.translate(user_input)
+        with st.spinner('AI गहराई से सोच रहा है...'):
+            try:
+                # AI को विशेष निर्देश देना ताकि 'Sense' सही आए
+                prompt = f"Act as a professional translator. Translate this text from {mode}: '{user_input}'. If it's Hinglish, treat it as Hindi. Focus on the actual human meaning (context) rather than literal word-to-word translation. Output ONLY the translated text."
                 
-                # 'Double Check' Logic: अगर अनुवाद अभी भी वही है जो इनपुट था, तो दोबारा कोशिश करें
-                if translated.strip().lower() == user_input.strip().lower():
-                    st.warning("Trying alternative server...")
-                    translated = GoogleTranslator(source='auto', target='hi').translate(user_input)
+                response = model.generate_content(prompt)
+                translated = response.text.strip()
 
-            # Display
-            st.markdown(f'<div class="translated-box">{translated}</div>', unsafe_allow_html=True)
-            
-            # Action Buttons
-            col1, col2 = st.columns(2)
-            with col1:
+                # Result Display
+                st.markdown(f'<div class="translated-box">{translated}</div>', unsafe_allow_html=True)
+                
+                # WhatsApp & Copy
                 encoded_text = urllib.parse.quote(translated)
                 st.markdown(f'''<a href="https://wa.me/?text={encoded_text}" target="_blank">
-                    <button style="width:100%; cursor:pointer; background-color:#25D366; color:white; border:none; padding:12px; border-radius:20px; font-weight:bold;">
-                    WhatsApp</button></a>''', unsafe_allow_html=True)
-            with col2:
+                    <button style="width:100%; cursor:pointer; background-color:#25D366; color:white; border:none; padding:12px; border-radius:20px; font-weight:bold; margin-bottom:10px;">
+                    WhatsApp पर भेजें</button></a>''', unsafe_allow_html=True)
+                
                 st.info("📋 Copy Text:")
                 st.code(translated, language=None)
                 
-        except Exception as e:
-            st.error("सर्वर लोड नहीं ले रहा, कृपया 2 सेकंड बाद फिर दबाएँ।")
+            except Exception as e:
+                st.error("अभी AI काम नहीं कर पा रहा। कृपया अपनी API Key चेक करें।")
     else:
-        st.warning("कृपया कुछ टाइप करें।")
-
-st.caption("Version 14.0 | Force-Translation Logic")
+        st.warning("भाई, पहले कुछ लिखो तो सही!")
