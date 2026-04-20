@@ -12,8 +12,8 @@ if "GEMINI_API_KEY" not in st.secrets:
 try:
     API_KEY = st.secrets["GEMINI_API_KEY"]
     genai.configure(api_key=API_KEY)
-    # यहाँ हमने मॉडल बदल दिया है ताकि 404 एरर न आए
-    model = genai.GenerativeModel('gemini-pro')
+    # सबसे लेटेस्ट 'Flash' मॉडल जो 404 नहीं देगा
+    model = genai.GenerativeModel('gemini-1.5-flash-latest')
 except Exception as e:
     st.error(f"❌ API लोड करने में दिक्कत: {e}")
 
@@ -28,7 +28,7 @@ st.markdown("""
 
 st.title("🤖 विजय का AI ट्रांसलेटर")
 
-mode = st.radio("Mode:", ["Hindi to English", "English to Hindi"], horizontal=True)
+mode = st.radio("अनुवाद चुनें:", ["Hindi to English", "English to Hindi"], horizontal=True)
 user_input = st.text_area("यहाँ लिखें (जैसे: आज तो बात ही नहीं कर रही हो):", height=120)
 
 if st.button("AI Translate"):
@@ -36,7 +36,7 @@ if st.button("AI Translate"):
         with st.spinner('AI गहराई से सोच रहा है...'):
             try:
                 # AI को स्पष्ट निर्देश
-                prompt = f"Professional translation for {mode}: '{user_input}'. Meaning and context matter. If it's Hinglish, translate to standard English. Output only translated text."
+                prompt = f"Professional translation for {mode}: '{user_input}'. Meaning and context matter. Output only translated text."
                 response = model.generate_content(prompt)
                 translated = response.text.strip()
                 
